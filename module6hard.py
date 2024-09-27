@@ -102,22 +102,31 @@ import math
 
 class Figure:
     SIDE_DEFAULT = 1
+    COLOR_DEFAULT = 0
+
+    sides_count = 0
 
     def __init__(self, *args):
-        self.sides_count = 0
-        self.__sides = []               # __sides(список сторон (целые числа))
         self.filled = False             # Атрибуты(публичные): filled(закрашенный, bool)
 
         if len(args) > 0 and self.is_rgb_param(args[0], True):
-            self.set_color(args[0][0], args[0][1], args[0][2])
+            r, g, b = args[0]
+            self.set_color(r, g, b)
         else:
-            self.__color = []        #  __color(список цветов в формате RGB)
+            self.__color = [Figure.COLOR_DEFAULT]*3        #  __color(список цветов в формате RGB)
+
+        self.__sides = [Figure.SIDE_DEFAULT]*self.sides_count
+        if len(args) > 0:
+            side_lst = [*args[1:]] if self.is_rgb_param(args[0]) else [*args]
+            if len(side_lst) == self.sides_count:
+                self.set_sides(*side_lst)
 
     """
     Проверяет является ли параметр RGP цветом
     """
     def is_rgb_param(self, lst, valid_value=False):
-        if isinstance(lst, tuple) and len(lst) == 3:
+
+        if ((isinstance(lst, tuple) or isinstance(lst, list) or isinstance(lst, set)) and len(lst) == 3):
             if valid_value:
                 return self.__is_valid_color(lst[0], lst[1], lst[2])
             else:
@@ -188,7 +197,6 @@ class Figure:
 
 
 class Circle(Figure):
-
     """
     Атрибуты класса Circle: sides_count = 1
     Каждый объект класса Circle должен обладать следующими атрибутами и методами:
@@ -196,23 +204,10 @@ class Circle(Figure):
     Все атрибуты и методы класса Figure
     Атрибут __radius, рассчитать исходя из длины окружности (одной единственной стороны).    
     """
+    sides_count = 1
+
     def __init__(self, *args):
         super().__init__(*args)
-        self.sides_count = 1
-
-        if len(args) > 0:
-            side_lst = []
-            if super().is_rgb_param(args[0]):
-                side_lst = args[1:]
-            else:
-                side_lst = args[0:]
-            if len(side_lst) == self.sides_count:
-                super().set_sides(*side_lst)
-            else:
-                super().set_sides([Figure.SIDE_DEFAULT]*self.sides_count)
-        else:
-            super().set_sides([Figure.SIDE_DEFAULT]*self.sides_count)
-
         self.__radius = self.get_radius_by_side(super().get_sides()[0])
 
     def get_radius_by_side(self, side_len):
@@ -234,31 +229,17 @@ class Triangle(Figure):
     Каждый объект класса Triangle должен обладать следующими атрибутами и методами:
     Все атрибуты и методы класса Figure
     """
+    sides_count = 3
+
     def __init__(self, *args):
         super().__init__(*args)
-        self.sides_count = 3
-
-        if len(args) > 0:
-            side_lst = []
-            if super().is_rgb_param(args[0]):
-                side_lst = args[1:]
-            else:
-                side_lst = args[0:]
-            if len(side_lst) == self.sides_count:
-                super().set_sides(*side_lst)
-            else:
-                super().set_sides([Figure.SIDE_DEFAULT]*self.sides_count)
-        else:
-            super().set_sides([Figure.SIDE_DEFAULT]*self.sides_count)
 
     """
     Метод get_square возвращает площадь треугольника. (можно рассчитать по формуле Герона)
     """
     def get_square(self):
         p = sum(self.get_sides()) / 2
-        a = self.get_sides()[0]
-        b = self.get_sides()[1]
-        c = self.get_sides()[2]
+        a, b, c = self.get_sides()
         return math.sqrt(p*(p-a)*(p-b)*(p-c))
 
 class Cube(Figure):
@@ -268,17 +249,13 @@ class Cube(Figure):
     Все атрибуты и методы класса Figure.
     Переопределить __sides сделав список из 12 одинаковы сторон (передаётся 1 сторона)
     """
+    sides_count = 12
+
     def __init__(self, *args):
         super().__init__(*args)
-        self.sides_count = 12
-        self.__sides = [Figure.SIDE_DEFAULT] * self.sides_count
 
         if len(args) > 0:
-            side_lst = []
-            if super().is_rgb_param(args[0]):
-                side_lst = args[1:]
-            else:
-                side_lst = args[0:]
+            side_lst = [*args[1:]] if super().is_rgb_param(args[0]) else [*args]
             if len(side_lst) == 1:
                 self.set_sides(*side_lst)
 
@@ -287,11 +264,7 @@ class Cube(Figure):
     """
     def set_sides(self, *new_sides):
         if len(new_sides) == 1:
-            if isinstance(new_sides[0], int) and new_sides[0] > 0:
-                self.__sides = [new_sides[0]] * self.sides_count
-
-    def get_sides(self):
-        return self.__sides
+            super().set_sides(*[new_sides[0]]*self.sides_count)
 
     """
     Метод get_volume, возвращает объём куба.
@@ -336,3 +309,20 @@ cube2 = Cube((256, 101, 0), 2, 5, 4)
 print(f"cube2.get_sides()={cube2.get_sides()}")
 print(f"cube2.get_color()={cube2.get_color()}")
 print(f"cube2.get_volume()={cube2.get_volume()}")
+
+f1 = Figure((100, 100, 100), 1)
+print(f1.get_color())
+f1.set_color(300, 300, 300)
+print(f1.get_color())
+
+
+class Sixter(Figure):
+    sides_count = 6
+
+f4 = Sixter([5, 5, 5], 5, 6, 7, 8, 9, 10)
+print(f4.get_color())
+f4.set_color(300, 300, 300)
+print(f4.get_color())
+
+cube = Cube((2, 2, 2), 3)
+print(cube.get_sides())
